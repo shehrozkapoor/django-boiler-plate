@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=voosool_backend
+POSTGRES_USER=nZCKNJGgRpsbTEYQoemLTatFnKeuAXsA
+POSTGRES_PASSWORD=s6P9tRYKhQ2XszXNKkA3XlMk4JaT3qiKh8VH7Vu6klMpF7QjIQEcAz6LEjer82tR

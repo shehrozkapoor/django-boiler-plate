@@ -1,0 +1,102 @@
+version: '3'
+
+volumes:
+  voosool_backend_local_postgres_data: {}
+  voosool_backend_local_postgres_data_backups: {}
+
+services:
+  django: &django
+    deploy:
+      replicas: 1
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: voosool_backend_local_django
+    # container_name: voosool_backend_local_django
+    # platform: linux/x86_64
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./envs/.local/.django
+      - ./envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: /start
+
+  postgres:
+    deploy:
+      replicas: 1
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: voosool_backend_production_postgres
+    # container_name: voosool_backend_local_postgres
+    volumes:
+      - voosool_backend_local_postgres_data:/var/lib/postgresql/data:Z
+      - voosool_backend_local_postgres_data_backups:/backups:z
+    env_file:
+      - ./envs/.local/.postgres
+
+  docs:
+    image: voosool_backend_local_docs
+
+    # container_name: voosool_backend_local_docs
+    # platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./envs/.local/.django
+    volumes:
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./voosool_backend:/app/voosool_backend:z
+    ports:
+      - "9000:9000"
+    command: /start-docs
+
+  redis:
+    image: redis:6
+    deploy:
+      replicas: 1
+    # container_name: voosool_backend_local_redis
+
+  celeryworker:
+    <<: *django
+
+    deploy:
+      replicas: 1
+    image: voosool_backend_local_celeryworker
+    # container_name: voosool_backend_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+
+    deploy:
+      replicas: 1
+    image: voosool_backend_local_celerybeat
+    # container_name: voosool_backend_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+
+    deploy:
+      replicas: 1
+    image: voosool_backend_local_flower
+    # container_name: voosool_backend_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower

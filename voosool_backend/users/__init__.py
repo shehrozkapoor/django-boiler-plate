@@ -1,0 +1,1 @@
+default_app_config = "voosool_backend.users.apps.UsersConfig"
